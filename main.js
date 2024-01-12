@@ -80,7 +80,6 @@ button.addEventListener('click', () => {
     .map((group, index) => {
       const groupElement = checkboxGroups[index]
       const letterCheckboxes = [ ...groupElement.getElementsByClassName('swap-group-checkbox-letter') ]
-      console.log('letterCheckboxes', letterCheckboxes)
       return group.filter((_, index) => letterCheckboxes[index].checked)
     })
     .filter((group, index) => checkboxes[index].checked && group.length > 0)
