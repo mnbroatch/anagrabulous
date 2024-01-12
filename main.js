@@ -53,9 +53,11 @@ for (let swapGroup of swaps) {
     const checkboxLabel = document.createElement('div')
     checkboxLabel.innerHTML = letter
     const checkbox = document.createElement('input')
-    letterControl.classList.add('swap-group-checkbox-letter')
+    checkbox.dataset.letter = letter
+    letterControl.classList.add('swap-group-checkbox-letter-control')
     checkbox.type = 'checkbox'
     checkbox.checked = true
+    checkbox.classList.add('swap-group-checkbox-letter')
     letterControl.appendChild(checkboxLabel)
     letterControl.appendChild(checkbox)
     checkboxControl.appendChild(letterControl)
@@ -72,8 +74,16 @@ button.addEventListener('click', () => {
   const outputElement = document.getElementById('output');
 
   const checkboxes = [ ...document.getElementsByClassName('swap-group-checkbox') ]
-  const swapGroups = swaps.filter((_, index) => checkboxes[index].checked);
+  const checkboxGroups = [ ...document.getElementsByClassName('swap-group-checkbox-control') ]
 
+  const swapGroups = swaps
+    .map((group, index) => {
+      const groupElement = checkboxGroups[index]
+      const letterCheckboxes = [ ...groupElement.getElementsByClassName('swap-group-checkbox-letter') ]
+      console.log('letterCheckboxes', letterCheckboxes)
+      return group.filter((_, index) => letterCheckboxes[index].checked)
+    })
+    .filter((group, index) => checkboxes[index].checked && group.length > 0)
 
   let candidates = allWords
   .filter(word => word.length <= val1.length)
