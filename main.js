@@ -40,7 +40,7 @@ for (let swapGroup of swaps) {
   checkboxControl.classList.add('swap-group-checkbox-control')
   checkbox.classList.add('swap-group-checkbox')
   checkbox.type = 'checkbox'
-  checkbox.checked = false
+  checkbox.checked = true
 
   checkboxControl.appendChild(checkbox)
 
@@ -69,6 +69,7 @@ for (let swapGroup of swaps) {
 
 
 button.addEventListener('click', () => {
+  const start = Date.now()
   const val1 = document.getElementById('anagramsonsteroids').value;
   const letters = countLetters(val1);
   const outputElement = document.getElementById('output');
@@ -120,4 +121,5 @@ button.addEventListener('click', () => {
     null,
     2
   );
+  console.log('Date.now() - start', Date.now() - start)
 })
