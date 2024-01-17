@@ -1,37 +1,3 @@
-function countLetters (str) {
-  const map = {};
-  str.split('').forEach((letter) => {
-    if (!map[letter]) {
-      map[letter] = 1;
-    } else {
-      map[letter]++;
-    }
-  })
-  return map;
-}
-
-function getDiff (str1, str2) {
-  const str1Chars = countLetters(str1);
-  const str2Chars = countLetters(str2);
-
-  Object.entries(str2Chars).forEach(([letter, count]) => {
-    if (str1Chars[letter] === undefined) str1Chars[letter] = 0;
-    str1Chars[letter] -= count;
-  })
-
-  return str1Chars;
-}
-
-function getRemainder (diff) {
-  let toReturn = ''
-  Object.entries(diff).forEach(([letter, count]) => {
-    for (let i = count; i > 0; i--) {
-      toReturn += letter;
-    }
-  })
-  return toReturn;
-}
-
 const button = document.getElementById('do-thing');
 const checkboxContainer = document.getElementById('checkboxes');
 for (let swapGroup of swaps) {
@@ -43,10 +9,6 @@ for (let swapGroup of swaps) {
   checkbox.checked = false
 
   checkboxControl.appendChild(checkbox)
-
-
-
-
 
   for (let letter of swapGroup) {
     const letterControl = document.createElement('div')
@@ -64,13 +26,29 @@ for (let swapGroup of swaps) {
   }
 
   checkboxContainer.appendChild(checkboxControl)
-
 }
 
+const wordTree = {}
+allWords.forEach((word) => {
+  const sortedLetters = word.split('').sort()
+  let current = wordTree
+  const length = word.length
+  sortedLetters.forEach((letter, i) => {
+    if (!current[letter]) {
+      current[letter] = {}
+    }
+    current = current[letter] 
+    if (i === length - 1) {
+      if (!current.words) {
+        current.words = []
+      }
+      current.words.push(word)
+    }
+  })
+})
 
 button.addEventListener('click', () => {
   const val1 = document.getElementById('anagramsonsteroids').value;
-  const letters = countLetters(val1);
   const outputElement = document.getElementById('output');
 
   const checkboxes = [ ...document.getElementsByClassName('swap-group-checkbox') ]
@@ -84,36 +62,12 @@ button.addEventListener('click', () => {
     })
     .filter((group, index) => checkboxes[index].checked && group.length > 0)
 
-  let candidates = allWords
-  .filter(word => word.length <= val1.length)
-  .map((word) => {
-    return [ word, getDiff(val1, word) ]
-  })
-  .filter(([ word, diff ]) => {
-    let count = 0
-    Object.entries(diff).forEach(([letter, val]) => {
-      const swapGroup = swapGroups.find(group => group.includes(letter))
-      if (diff[letter] < 0 && swapGroup) {
-        for (let swappedLetter of swapGroup) {
-          if (letter !== swappedLetter && diff[swappedLetter] > 0 && diff[letter] < 0) {
-            diff[swappedLetter]--
-            diff[letter]++
-            if (diff[letter] >= 0) {
-              break
-            }
-          }
-        }
-      }
-    })
-    return !Object.values(diff).some(val => val < 0)
-  });
+  const sortedLetters = val1.split('').sort()
+
+  const candidates = getCandidates(sortedLetters, wordTree, swapGroups)
+
   const results = candidates
-  .sort((a, b) => {
-    return b[0].length - a[0].length
-  })
-  .map(([word, diff ]) => {
-    return `${word}: ${getRemainder(diff)} `
-  })
+    .map(({ word, remainder }) => `${word}: ${remainder}`)
   outputElement.innerHTML = ''
   outputElement.innerHTML = JSON.stringify(
     results,
@@ -121,3 +75,36 @@ button.addEventListener('click', () => {
     2
   );
 })
+
+function getCandidates (remainingLetters, currentNode, swapGroups, currentLetters = []) {
+  const candidates = []
+
+  if (!currentNode) return []
+
+  if (currentNode.words && currentNode.words.length) {
+    candidates.push(...currentNode.words.map((word) => ({ word, remainder: remainingLetters.join('') })))
+  }
+
+  if (!remainingLetters.length) return candidates
+
+  const searched = []
+  
+  for (let i = 0, len = remainingLetters.length; i < len; i++) {
+    const letter = remainingLetters[i]
+    const rem = remainingLetters.filter((_, ind) => ind !== i)
+    while (i < len && remainingLetters[i + 1] === letter) {
+      i++
+    }
+
+    const swaps = [ ...(new Set([ ...swapGroups, [letter] ].filter(group => group.includes(letter)).reduce((acc, group) => [...group, ...acc], []))) ]
+    swaps.forEach((swapLetter) => {
+      const curr = [ ...currentLetters, swapLetter ]
+      const cand = getCandidates(rem, currentNode[swapLetter], swapGroups, curr)
+
+      candidates.push(...cand)
+    })
+  }
+
+  return candidates
+}
+
