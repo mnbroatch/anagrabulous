@@ -66,6 +66,7 @@ button.addEventListener('click', () => {
   const sortedLetters = val1.split('').sort()
 
   const candidates = getCandidates(sortedLetters, wordTree, swapGroups)
+  console.log('candidates.length', candidates.length)
 
   const results = candidates
     .map(({ word, remainder }) => `${word}: ${remainder}`)
