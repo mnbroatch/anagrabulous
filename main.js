@@ -108,6 +108,7 @@ button.addEventListener('click', () => {
     })
     return !Object.values(diff).some(val => val < 0)
   });
+  console.log('candidates.length', candidates.length)
   const results = candidates
   .sort((a, b) => {
     return b[0].length - a[0].length
