@@ -47,6 +47,13 @@ allWords.forEach((word) => {
   })
 })
 
+function normalizeSwaps (letters, swapMap) {
+  return letters.map(letter => {
+    const swapGroup = swapMap[letter]
+    return swapGroup ? swapGroup[0] : letter
+  })
+}
+
 button.addEventListener('click', () => {
   const start = Date.now()
   const val1 = document.getElementById('anagramsonsteroids').value;
@@ -63,13 +70,24 @@ button.addEventListener('click', () => {
     })
     .filter((group, index) => checkboxes[index].checked && group.length > 0)
 
-  const sortedLetters = val1.split('').sort()
+  const swapMap = {}
+  swapGroups.forEach((group) => {
+    group.forEach((letter) => {
+      swapMap[letter] = [ ...(new Set([...group, ...(swapMap[letter] || [])])) ]
+    })
+  })
 
-  const candidates = getCandidates(sortedLetters, wordTree, swapGroups)
+  const normalizedLetterObjects = normalizeSwaps(val1.split(''), swapMap)
+    .map((letter, index) => ({ letter, index }))
+    .sort((a, b) => a.letter > b.letter ? 1 : -1)
+
+  const candidates = getCandidates(normalizedLetterObjects, wordTree, swapMap)
   console.log('candidates.length', candidates.length)
+  const words = candidates.map(w => w.word).sort()
+  console.log('words', words)
 
   const results = candidates
-    .map(({ word, remainder }) => `${word}: ${remainder}`)
+    .map(({ word, remainingLetterObjects }) => `${word}: ${getRemainder(remainingLetterObjects, val1)}`)
   outputElement.innerHTML = ''
   outputElement.innerHTML = JSON.stringify(
     results,
@@ -79,31 +97,31 @@ button.addEventListener('click', () => {
   console.log('Date.now() - start', Date.now() - start)
 })
 
-function getCandidates (remainingLetters, currentNode, swapGroups, currentLetters = []) {
+function getCandidates (remainingLetterObjects, currentNode, swapMap, currentLetters = []) {
   const candidates = []
 
   if (!currentNode) return []
 
   if (currentNode.words && currentNode.words.length) {
-    candidates.push(...currentNode.words.map((word) => ({ word, remainder: remainingLetters.join('') })))
+    candidates.push(...currentNode.words.map((word) => ({ word, remainingLetterObjects })))
   }
 
-  if (!remainingLetters.length) return candidates
+  if (!remainingLetterObjects.length) return candidates
 
-  const searched = []
-  
-  for (let i = 0, len = remainingLetters.length; i < len; i++) {
-    const letter = remainingLetters[i]
-    const rem = remainingLetters.filter((_, ind) => ind !== i)
-    while (i < len && remainingLetters[i + 1] === letter) {
+  for (let i = 0, len = remainingLetterObjects.length; i < len; i++) {
+    const letterObject = remainingLetterObjects[i]
+
+    // hereererererer
+    const rem = remainingLetterObjects.filter((_, ind) => ind !== i)
+
+    while (i < len && remainingLetterObjects[i + 1] && remainingLetterObjects[i + 1].letter === letterObject.letter) {
       i++
     }
 
-    const swaps = [ ...(new Set([ ...swapGroups, [letter] ].filter(group => group.includes(letter)).reduce((acc, group) => [...group, ...acc], []))) ]
+    const swaps = swapMap[letterObject.letter] || [letterObject.letter]
     swaps.forEach((swapLetter) => {
       const curr = [ ...currentLetters, swapLetter ]
-      const cand = getCandidates(rem, currentNode[swapLetter], swapGroups, curr)
-
+      const cand = getCandidates(rem, currentNode[swapLetter], swapMap, curr)
       candidates.push(...cand)
     })
   }
@@ -111,3 +129,6 @@ function getCandidates (remainingLetters, currentNode, swapGroups, currentLetter
   return candidates
 }
 
+function getRemainder (remainingLetterObjects, value) {
+  return remainingLetterObjects.map(letterObject => value[letterObject.index]).join('')
+}
