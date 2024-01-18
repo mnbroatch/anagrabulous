@@ -111,7 +111,6 @@ function getCandidates (remainingLetterObjects, currentNode, swapMap, currentLet
   for (let i = 0, len = remainingLetterObjects.length; i < len; i++) {
     const letterObject = remainingLetterObjects[i]
 
-    // hereererererer
     const rem = remainingLetterObjects.filter((_, ind) => ind !== i)
 
     while (i < len && remainingLetterObjects[i + 1] && remainingLetterObjects[i + 1].letter === letterObject.letter) {
