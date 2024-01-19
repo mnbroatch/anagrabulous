@@ -6,7 +6,7 @@ for (let swapGroup of swaps) {
   checkboxControl.classList.add('swap-group-checkbox-control')
   checkbox.classList.add('swap-group-checkbox')
   checkbox.type = 'checkbox'
-  checkbox.checked = true
+  checkbox.checked = false
 
   checkboxControl.appendChild(checkbox)
 
@@ -54,10 +54,6 @@ function makeWordTree (words) {
 }
 
 function normalizeSwaps (letters, swapMap) {
-  return letters.map(letter => {
-    const swapGroup = swapMap[letter]
-    return swapGroup ? swapGroup[0] : letter
-  })
 }
 
 button.addEventListener('click', () => {
@@ -65,6 +61,7 @@ button.addEventListener('click', () => {
   const val1 = document.getElementById('anagramsonsteroids').value;
   const val2 = document.getElementById('verification').value;
   const outputElement = document.getElementById('output');
+  const isMulti = document.getElementById('is-multi-checkbox').checked;
 
   const checkboxes = [ ...document.getElementsByClassName('swap-group-checkbox') ]
   const checkboxGroups = [ ...document.getElementsByClassName('swap-group-checkbox-control') ]
@@ -84,12 +81,25 @@ button.addEventListener('click', () => {
     })
   })
 
-  const normalizedLetterObjects = normalizeSwaps(val1.split(''), swapMap)
-    .map((letter, index) => ({ letter, index }))
-    .sort((a, b) => a.letter > b.letter ? 1 : -1)
+  const normalizedLetterObjects = getNormalizedLetterObjects(val1, swapMap)
 
   const tree = val2 ? makeWordTree([val2]) : wordTree
-  const candidates = getCandidates(normalizedLetterObjects, tree, swapMap)
+  const initialCandidates = getCandidates(normalizedLetterObjects, tree, swapMap)
+  const candidates = isMulti
+    ? initialCandidates 
+      .map(cand => {
+        const remainderLetterObjects = getNormalizedLetterObjects(formatRemainder(cand.remainingLetterObjects), swapMap)
+        const remainderCandidates = getCandidates(remainderLetterObjects, tree, swapMap)
+        return remainderCandidates.map(candidate => ({
+          word: `${cand.word} ${candidate.word}`,
+          remainingLetterObjects: candidate.remainingLetterObjects
+        }))
+      })
+      .reduce((acc, c) => [ ...acc, ...c ], [])
+    : initialCandidates
+
+  console.log('candidates', candidates)
+
   const words = candidates.map(w => w.word).sort()
   console.log('words', words)
 
@@ -103,6 +113,18 @@ button.addEventListener('click', () => {
   console.log('Date.now() - start', Date.now() - start)
 })
 
+function getNormalizedLetterObjects (val1, swapMap) {
+  return val1.split('').map(letter => {
+    const swapGroup = swapMap[letter]
+    const swapLetter = swapGroup ? swapGroup[0] : letter
+    return {
+      letter: swapLetter,
+      originalLetter: letter
+    }
+  })
+  .sort((a, b) => a.letter > b.letter ? 1 : -1)
+}
+
 function formatResults (candidates, value) {
   return candidates
     .sort((a, b) => {
@@ -112,7 +134,7 @@ function formatResults (candidates, value) {
         return a.word.length > b.word.length ? -1 : 1
       }
     })
-    .map(({ word, remainingLetterObjects }) => `${word}: ${formatRemainder(remainingLetterObjects, value)}`)
+    .map(({ word, remainingLetterObjects }) => `${word}: ${formatRemainder(remainingLetterObjects)}`)
 }
 
 function getCandidates (remainingLetterObjects, currentNode, swapMap, currentLetters = []) {
@@ -149,6 +171,6 @@ function getCandidates (remainingLetterObjects, currentNode, swapMap, currentLet
   return candidates
 }
 
-function formatRemainder (remainingLetterObjects, value) {
-  return remainingLetterObjects.map(letterObject => value[letterObject.index]).join('')
+function formatRemainder (remainingLetterObjects) {
+  return remainingLetterObjects.map(letterObject => letterObject.originalLetter).join('')
 }
