@@ -28,24 +28,30 @@ for (let swapGroup of swaps) {
   checkboxContainer.appendChild(checkboxControl)
 }
 
-const wordTree = {}
-allWords.forEach((word) => {
-  const sortedLetters = word.split('').sort()
-  let current = wordTree
-  const length = word.length
-  sortedLetters.forEach((letter, i) => {
-    if (!current[letter]) {
-      current[letter] = {}
-    }
-    current = current[letter] 
-    if (i === length - 1) {
-      if (!current.words) {
-        current.words = []
+const wordTree = makeWordTree(allWords)
+
+function makeWordTree (words) {
+  const toReturn = {}
+  words.forEach((word) => {
+    const sortedLetters = word.split('').sort()
+    let current = toReturn
+    const length = word.length
+    sortedLetters.forEach((letter, i) => {
+      if (!current[letter]) {
+        current[letter] = {}
       }
-      current.words.push(word)
-    }
+      current = current[letter] 
+      if (i === length - 1) {
+        if (!current.words) {
+          current.words = []
+        }
+        current.words.push(word)
+      }
+    })
   })
-})
+
+  return toReturn
+}
 
 function normalizeSwaps (letters, swapMap) {
   return letters.map(letter => {
@@ -57,6 +63,7 @@ function normalizeSwaps (letters, swapMap) {
 button.addEventListener('click', () => {
   const start = Date.now()
   const val1 = document.getElementById('anagramsonsteroids').value;
+  const val2 = document.getElementById('verification').value;
   const outputElement = document.getElementById('output');
 
   const checkboxes = [ ...document.getElementsByClassName('swap-group-checkbox') ]
@@ -81,13 +88,12 @@ button.addEventListener('click', () => {
     .map((letter, index) => ({ letter, index }))
     .sort((a, b) => a.letter > b.letter ? 1 : -1)
 
-  const candidates = getCandidates(normalizedLetterObjects, wordTree, swapMap)
-  console.log('candidates.length', candidates.length)
+  const tree = val2 ? makeWordTree([val2]) : wordTree
+  const candidates = getCandidates(normalizedLetterObjects, tree, swapMap)
   const words = candidates.map(w => w.word).sort()
   console.log('words', words)
 
-  const results = candidates
-    .map(({ word, remainingLetterObjects }) => `${word}: ${getRemainder(remainingLetterObjects, val1)}`)
+  const results = formatResults(candidates, val1)
   outputElement.innerHTML = ''
   outputElement.innerHTML = JSON.stringify(
     results,
@@ -96,6 +102,18 @@ button.addEventListener('click', () => {
   );
   console.log('Date.now() - start', Date.now() - start)
 })
+
+function formatResults (candidates, value) {
+  return candidates
+    .sort((a, b) => {
+      if (a.word.length === b.word.length) {
+        return a.word < b.word ? -1 : 1
+      } else {
+        return a.word.length > b.word.length ? -1 : 1
+      }
+    })
+    .map(({ word, remainingLetterObjects }) => `${word}: ${formatRemainder(remainingLetterObjects, value)}`)
+}
 
 function getCandidates (remainingLetterObjects, currentNode, swapMap, currentLetters = []) {
   const candidates = []
@@ -117,6 +135,9 @@ function getCandidates (remainingLetterObjects, currentNode, swapMap, currentLet
       i++
     }
 
+    // when implementing multiple words, to solve "dog cat" vs "cat dog", we need to make sure a given candidate
+    // never looks for a word out of alphabetical order from the last.
+
     const swaps = swapMap[letterObject.letter] || [letterObject.letter]
     swaps.forEach((swapLetter) => {
       const curr = [ ...currentLetters, swapLetter ]
@@ -128,6 +149,6 @@ function getCandidates (remainingLetterObjects, currentNode, swapMap, currentLet
   return candidates
 }
 
-function getRemainder (remainingLetterObjects, value) {
+function formatRemainder (remainingLetterObjects, value) {
   return remainingLetterObjects.map(letterObject => value[letterObject.index]).join('')
 }
