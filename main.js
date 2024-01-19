@@ -53,15 +53,12 @@ function makeWordTree (words) {
   return toReturn
 }
 
-function normalizeSwaps (letters, swapMap) {
-}
-
 button.addEventListener('click', () => {
   const start = Date.now()
   const val1 = document.getElementById('anagramsonsteroids').value;
   const val2 = document.getElementById('verification').value;
   const outputElement = document.getElementById('output');
-  const isMulti = document.getElementById('is-multi-checkbox').checked;
+  const isMulti = !val2 && document.getElementById('is-multi-checkbox').checked;
 
   const checkboxes = [ ...document.getElementsByClassName('swap-group-checkbox') ]
   const checkboxGroups = [ ...document.getElementsByClassName('swap-group-checkbox-control') ]
@@ -88,8 +85,9 @@ button.addEventListener('click', () => {
   const candidates = isMulti
     ? initialCandidates 
       .map(cand => {
+        const wordLetterObjects = getNormalizedLetterObjects(cand.word, swapMap)
         const remainderLetterObjects = getNormalizedLetterObjects(formatRemainder(cand.remainingLetterObjects), swapMap)
-        const remainderCandidates = getCandidates(remainderLetterObjects, tree, swapMap)
+        const remainderCandidates = getCandidates(remainderLetterObjects, tree, swapMap, wordLetterObjects.map(o => o.letter).join(''))
         return remainderCandidates.map(candidate => ({
           word: `${cand.word} ${candidate.word}`,
           remainingLetterObjects: candidate.remainingLetterObjects
@@ -137,7 +135,7 @@ function formatResults (candidates, value) {
     .map(({ word, remainingLetterObjects }) => `${word}: ${formatRemainder(remainingLetterObjects)}`)
 }
 
-function getCandidates (remainingLetterObjects, currentNode, swapMap, currentLetters = []) {
+function getCandidates (remainingLetterObjects, currentNode, swapMap, previousWord, currentLetters = []) {
   const candidates = []
 
   if (!currentNode) return []
@@ -163,7 +161,8 @@ function getCandidates (remainingLetterObjects, currentNode, swapMap, currentLet
     const swaps = swapMap[letterObject.letter] || [letterObject.letter]
     swaps.forEach((swapLetter) => {
       const curr = [ ...currentLetters, swapLetter ]
-      const cand = getCandidates(rem, currentNode[swapLetter], swapMap, curr)
+      if (previousWord && curr.join('') > previousWord) return
+      const cand = getCandidates(rem, currentNode[swapLetter], swapMap, previousWord, curr)
       candidates.push(...cand)
     })
   }
