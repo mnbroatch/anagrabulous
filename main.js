@@ -87,9 +87,11 @@ button.addEventListener('click', () => {
       .map(cand => {
         const wordLetterObjects = getNormalizedLetterObjects(cand.word, swapMap)
         const remainderLetterObjects = getNormalizedLetterObjects(formatRemainder(cand.remainingLetterObjects), swapMap)
-        const remainderCandidates = getCandidates(remainderLetterObjects, tree, swapMap, wordLetterObjects.map(o => o.letter).join(''))
+        const remainderCandidates = getCandidates(remainderLetterObjects, tree, swapMap, wordLetterObjects)
         return remainderCandidates.map(candidate => ({
           word: `${cand.word} ${candidate.word}`,
+          words: [cand, candidate],
+          currentLetterObjects: candidate.currentLetterObjects,
           remainingLetterObjects: candidate.remainingLetterObjects
         }))
       })
@@ -135,13 +137,13 @@ function formatResults (candidates, value) {
     .map(({ word, remainingLetterObjects }) => `${word}: ${formatRemainder(remainingLetterObjects)}`)
 }
 
-function getCandidates (remainingLetterObjects, currentNode, swapMap, previousWord, currentLetters = []) {
+function getCandidates (remainingLetterObjects, currentNode, swapMap, previousWordLetterObjects, currentLetterObjects = []) {
   const candidates = []
 
   if (!currentNode) return []
 
   if (currentNode.words && currentNode.words.length) {
-    candidates.push(...currentNode.words.map((word) => ({ word, remainingLetterObjects })))
+    candidates.push(...currentNode.words.map((word) => ({ word, currentLetterObjects, remainingLetterObjects })))
   }
 
   if (!remainingLetterObjects.length) return candidates
@@ -160,9 +162,9 @@ function getCandidates (remainingLetterObjects, currentNode, swapMap, previousWo
 
     const swaps = swapMap[letterObject.letter] || [letterObject.letter]
     swaps.forEach((swapLetter) => {
-      const curr = [ ...currentLetters, swapLetter ]
-      if (previousWord && curr.join('') > previousWord) return
-      const cand = getCandidates(rem, currentNode[swapLetter], swapMap, previousWord, curr)
+      const curr = [ ...currentLetterObjects, { letter: swapLetter, originalLetter: letterObject.originalLetter } ]
+      if (previousWordLetterObjects && curr.map(l => l.letter).join('') > previousWordLetterObjects.map(l => l.letter).join('')) return
+      const cand = getCandidates(rem, currentNode[swapLetter], swapMap, previousWordLetterObjects, curr)
       candidates.push(...cand)
     })
   }
