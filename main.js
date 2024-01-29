@@ -88,20 +88,12 @@ button.addEventListener('click', () => {
         const wordLetterObjects = getNormalizedLetterObjects(cand.word, swapMap)
         const remainderLetterObjects = getNormalizedLetterObjects(formatRemainder(cand.remainingLetterObjects), swapMap)
         const remainderCandidates = getCandidates(remainderLetterObjects, tree, swapMap, wordLetterObjects)
-        return remainderCandidates.map(candidate => ({
-          word: `${cand.word} ${candidate.word}`,
-          words: [cand, candidate],
-          currentLetterObjects: candidate.currentLetterObjects,
-          remainingLetterObjects: candidate.remainingLetterObjects
-        }))
+        return remainderCandidates.map(candidate => [cand, candidate])
       })
       .reduce((acc, c) => [ ...acc, ...c ], [])
-    : initialCandidates
+    : initialCandidates.map(cand => [cand])
 
   console.log('candidates', candidates)
-
-  const words = candidates.map(w => w.word).sort()
-  console.log('words', words)
 
   const results = formatResults(candidates, val1)
   outputElement.innerHTML = ''
@@ -128,13 +120,30 @@ function getNormalizedLetterObjects (val1, swapMap) {
 function formatResults (candidates, value) {
   return candidates
     .sort((a, b) => {
-      if (a.word.length === b.word.length) {
-        return a.word < b.word ? -1 : 1
+      const aWord = a.map(l => l.word).reduce((acc, w) => acc + w, '')
+      const bWord = b.map(l => l.word).reduce((acc, w) => acc + w, '')
+      if (aWord.length === bWord.length) {
+        return aWord < bWord ? -1 : 1
       } else {
-        return a.word.length > b.word.length ? -1 : 1
+        return aWord.length > bWord.length ? -1 : 1
       }
     })
-    .map(({ word, remainingLetterObjects }) => `${word}: ${formatRemainder(remainingLetterObjects)}`)
+    .map(words => `${words.map(formatWord).join(' ')}: ${formatRemainder(words[words.length - 1].remainingLetterObjects)}`)
+}
+
+function formatWord (word) {
+  const letterObjectsCopy = [...word.currentLetterObjects]
+  const letters = word.word.split('')
+  const sortedLetterObjects = []
+  letters.forEach((letter) => {
+    const index = letterObjectsCopy.findIndex((lo => lo.letter === letter))
+    sortedLetterObjects.push(letterObjectsCopy[index])
+    letterObjectsCopy.splice(index, 1)
+  })
+  return sortedLetterObjects.reduce((acc, letter) => acc + (letter.originalLetter === letter.letter
+    ? letter.letter
+    : `<span class=swapped-letter>${letter.letter}</span>`)
+  , '')
 }
 
 function getCandidates (remainingLetterObjects, currentNode, swapMap, previousWordLetterObjects, currentLetterObjects = []) {
