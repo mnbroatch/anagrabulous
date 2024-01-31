@@ -85,7 +85,7 @@ button.addEventListener('click', () => {
 
   const tree = val2 ? makeWordTree([val2]) : wordTree
   const initialCandidates = getCandidates(normalizedLetterObjects, tree, swapMap)
-  const candidates = initialCandidates.map(cand => [cand])
+  let candidates = initialCandidates.map(cand => [cand])
 
   let _candidates = candidates
   let depth = 1
@@ -96,10 +96,10 @@ button.addEventListener('click', () => {
         const wordLetterObjects = getNormalizedLetterObjects(cand.map(l => l.word).reduce((acc, w) => acc + w, ''), swapMap)
         const remainderLetterObjects = getNormalizedLetterObjects(formatRemainder(cand[cand.length - 1].remainingLetterObjects), swapMap)
         const remainderCandidates = getCandidates(remainderLetterObjects, tree, swapMap, wordLetterObjects)
-        return remainderCandidates.map(c => [...cand, c])
+        return remainderCandidates.map(c => cand.concat(c))
       })
-      .reduce((acc, c) => [ ...acc, ...c ], [])
-    candidates.push(..._candidates)
+      .reduce((acc, c) => acc.concat(c), [])
+    candidates = candidates.concat(_candidates)
   }
 
   const results = formatResults(candidates, val1)
@@ -111,6 +111,7 @@ button.addEventListener('click', () => {
   );
   console.log('candidates.length', candidates.length)
   console.log('Date.now() - start', Date.now() - start)
+  cache = {}
 })
 
 function getNormalizedLetterObjects (val1, swapMap) {
