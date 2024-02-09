@@ -1,6 +1,7 @@
 let cache = {}
 
 const button = document.getElementById('do-thing');
+const swapInputBoxContentsButton = document.getElementById('swap-button');
 const checkboxContainer = document.getElementById('checkboxes');
 for (let swapGroup of swaps) {
   const checkboxControl = document.createElement('div')
@@ -54,6 +55,15 @@ function makeWordTree (words) {
 
   return toReturn
 }
+
+swapInputBoxContentsButton.addEventListener('click', () => {
+  const el1 = document.getElementById('anagramsonsteroids');
+  const el2 = document.getElementById('verification');
+  const val1 = el1.value;
+  const val2 = el2.value;
+  el1.value = val2
+  el2.value = val1
+})
 
 button.addEventListener('click', () => {
   cache = {}
