@@ -80323,4 +80323,4 @@ const allWords = [
   "zyzzyvas"
 ]
 
-
+export default allWords
