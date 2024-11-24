@@ -1,28 +1,14 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <style>
-    .swap-group-checkbox-control {
-      display: inline-block;
-      border: 1px solid black;
-      margin: 4px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css">
+    <title><%= htmlWebpackPlugin.options.title %></title>
 </head>
 <body>
-<div id="checkboxes">
-</div>
-<input id="anagramsonsteroids">
-</input>
-<button id="do-thing">
-  Do the thing
-</button>
-<div id="output">
-</div>
-<script src="swaps.js">
-</script>
-<script src="dict.js">
-</script>
-<script src="main.js">
-</script>
+    <!--Mounting point for React VDOM-->
+    <div id="root"></div>
 </body>
 </html>

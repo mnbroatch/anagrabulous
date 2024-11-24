@@ -374,7 +374,6 @@ const allWords = [
   "human",
   "please",
   "hope",
-  "TRUE",
   "process",
   "teacher",
   "data",
@@ -1858,7 +1857,6 @@ const allWords = [
   "slip",
   "regional",
   "muscle",
-  "FALSE",
   "creation",
   "typically",
   "spending",
@@ -2392,7 +2390,6 @@ const allWords = [
   "properly",
   "bureau",
   "wolf",
-  "and/or",
   "classic",
   "recommendation",
   "exciting",
@@ -80326,4 +80323,4 @@ const allWords = [
   "zyzzyvas"
 ]
 
-
+export default allWords
