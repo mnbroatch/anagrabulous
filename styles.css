@@ -11,6 +11,28 @@
   padding: 4px;
 }
 
+.swap-group__remove {
+  border: 1px solid black;
+  width: 1.1em;
+  height: 1.1em;
+  margin-left: 10px;
+  background-color: red;
+  position: relative;
+}
+
+.swap-group__remove-x {
+  position: absolute;
+  color: white;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.swap-group__row {
+  display: flex;
+  justify-content: space-between;
+}
+
 .swap-group-letter-checkbox-container {
   display: inline-block;
   margin: 2px;

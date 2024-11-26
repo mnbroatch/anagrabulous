@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { formatRemainder, sortCandidates, sortLetterObjects, makeCandidateKey } from './utils'
+import { formatRemainder, sortCandidates, sortLetterObjects, makeCandidateKey } from '../utils'
 
 Branch.propTypes = {
   candidate: PropTypes.object,

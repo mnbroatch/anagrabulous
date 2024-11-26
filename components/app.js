@@ -1,25 +1,16 @@
 import React, { useState, useEffect, useReducer } from 'react'
 import { produce } from 'immer'
-import { makeSwapMap, makeWordTree, getNormalizedLetterObjects, getCandidates, makeCandidateKey, addToCandidatesTree, sortCandidates } from './utils'
-import allWords from './dict'
+import { makeSwapMap, makeWordTree, getNormalizedLetterObjects, getCandidates, makeCandidateKey, addToCandidatesTree, sortCandidates, makeSwapGroup } from '../utils'
+import allWords from '../dict'
 import Branch from './branch'
 import SwapMenu from './swap-menu'
-import swapGroupConfig from './swap-groups'
-
-const swapGroupObjects = swapGroupConfig.map((swapGroup) => ({
-  enabled: true,
-  letters: swapGroup.map((letter) => ({
-    enabled: true,
-    letter
-  }))
-}))
 
 const wordTree = makeWordTree(allWords)
 const cache = {}
 
 export default function App () {
   const [toAnagram, setToAnagram] = useState('')
-  const [swapGroups, setSwapGroups] = useState(swapGroupObjects)
+  const [swapGroups, setSwapGroups] = useState([])
   const [swapMenuOpen, setSwapMenuOpen] = useState(false)
 
   const swapMap = makeSwapMap(swapGroups)
@@ -61,13 +52,28 @@ export default function App () {
     }
   }
 
+  const removeSwapGroup = (index, letter) => {
+    setSwapGroups([...swapGroups.slice(0, index), ...swapGroups.slice(index + 1)])
+  }
+
+  const addSwapGroup = (letters) => {
+    setSwapGroups([makeSwapGroup(letters), ...swapGroups])
+  }
+
   return (
     <div className="main">
       <div className="controls">
         <input onChange={(e) => { setToAnagram(e.target.value) }} value={toAnagram} />
         <button onClick={() => dispatch({ type: 'clearCandidates' })}>Start</button>
         <button onClick={() => setSwapMenuOpen(!swapMenuOpen)}>{swapMenuOpen ? 'Close' : 'Swaps'}</button>
-        {swapMenuOpen && <SwapMenu swapGroups={swapGroups} updateSwapGroup={updateSwapGroup} />}
+        {swapMenuOpen && (
+          <SwapMenu
+            swapGroups={swapGroups}
+            updateSwapGroup={updateSwapGroup}
+            removeSwapGroup={removeSwapGroup}
+            addSwapGroup={addSwapGroup}
+          />
+        )}
       </div>
       <div className="results">
         {sortCandidates(candidatesTree.children).map((candidate) => {

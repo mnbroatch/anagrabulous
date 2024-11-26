@@ -1,5 +1,15 @@
 import { produce } from 'immer'
 
+export function makeSwapGroup (letters) {
+  return {
+    enabled: true,
+    letters: letters.map(letter => ({
+      letter,
+      enabled: true
+    }))
+  }
+}
+
 export function makeSwapMap (swapGroups) {
   const filteredSwapGroups = swapGroups
     .filter((swapGroup) => swapGroup.enabled)
